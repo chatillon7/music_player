@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+placeholder.txt
+*.log
 
 # debug
 npm-debug.log*
@@ -38,4 +40,13 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+next-env.d.ts
+
+# PWA
+/public/sw.js
+/public/workbox-*.js
+
+# IDE
+.vscode/
+.idea/
 next-env.d.ts

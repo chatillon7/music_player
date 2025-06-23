@@ -1,6 +1,7 @@
 {
-  "name": "music_player",
-  "version": "0.1.0",
+  "name": "music-player",
+  "version": "1.0.0",
+  "description": "Modern müzik çalar uygulaması - Next.js, TypeScript, Supabase, Bootstrap ile",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,17 +10,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@supabase/supabase-js": "^2.50.0",
+    "@types/file-saver": "^2.0.7",
+    "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
+    "file-saver": "^2.0.5",
+    "next": "15.3.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.3.4"
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "@eslint/eslintrc": "^3"
+    "typescript": "^5"
   }
 }
