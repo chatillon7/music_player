@@ -128,11 +128,10 @@ export default function DetailedStorageTest() {
 
         {results.length > 0 && (
           <div className="mt-3">
-            <h6>Possible Solutions:</h6>
-            <ul className="small">
-              <li><strong>Bucket name mismatch:</strong> Check if bucket name is exactly "music-files" (no spaces, no capitals)</li>
+            <h6>Possible Solutions:</h6>            <ul className="small">
+              <li><strong>Bucket name mismatch:</strong> Check if bucket name is exactly &quot;music-files&quot; (no spaces, no capitals)</li>
               <li><strong>Permissions issue:</strong> Ensure bucket is public and you have the right API key</li>
-              <li><strong>Project mismatch:</strong> Verify you're connecting to the correct Supabase project</li>
+              <li><strong>Project mismatch:</strong> Verify you&apos;re connecting to the correct Supabase project</li>
               <li><strong>Fresh bucket:</strong> Try deleting and recreating the bucket</li>
             </ul>
           </div>
