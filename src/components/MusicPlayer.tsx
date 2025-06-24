@@ -20,31 +20,69 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
   const [isMounted, setIsMounted] = useState(false)
   
   const audioRef = useRef<HTMLAudioElement>(null)
-  // Component mount detection
+    // Component mount detection
   useEffect(() => {
     setIsMounted(true)
-  }, [])
-    // Platform detection - Windows'ta autoplay hemen çalışsın (sadece client-side)
-  const isIOS = isMounted && /iPad|iPhone|iPod/.test(navigator.userAgent)
-  const isDesktop = isMounted && !(/Android|iPad|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+  }, [])  // SPOTIFY-STYLE: Immediate play on song change with user interaction
   useEffect(() => {
-    if (audioRef.current && song && isMounted) {
+    if (audioRef.current && song && isMounted && isUserInteraction) {
       const audio = audioRef.current
       const songUrl = musicService.getPublicUrl(song.file_path)
       
-      // iOS için özel handling: User interaction varsa hemen load + play
-      if (isIOS && isUserInteraction) {
-        audio.src = songUrl
-        audio.load() // Force load immediately
-        setIsLoading(true)
-        setCurrentTime(0)
-      } else {
-        audio.src = songUrl
-        setIsLoading(true)
-        setCurrentTime(0)
+      // IMMEDIATE PLAY - Fixed abort issue
+      const playImmediately = async () => {
+        try {
+          // Stop any existing playback first
+          if (!audio.paused) {
+            audio.pause()
+          }
+          
+          // Reset audio completely
+          audio.currentTime = 0
+          audio.src = songUrl
+          audio.preload = 'metadata'
+          setIsLoading(true)
+          setCurrentTime(0)
+          
+          // Wait for audio to be ready for iOS
+          const waitForReady = () => {
+            return new Promise<void>((resolve) => {
+              if (audio.readyState >= 2) { // HAVE_CURRENT_DATA
+                resolve()
+              } else {
+                const handler = () => {
+                  audio.removeEventListener('canplay', handler)
+                  resolve()
+                }
+                audio.addEventListener('canplay', handler, { once: true })
+                
+                // Fallback timeout
+                setTimeout(() => {
+                  audio.removeEventListener('canplay', handler)
+                  resolve()
+                }, 1000)
+              }
+            })
+          }
+          
+          await waitForReady()
+          
+          // Now play - this should work on iOS
+          await audio.play()
+          setIsPlaying(true)
+          setIsLoading(false)
+          
+        } catch (error) {
+          console.error('Play failed:', error)
+          setIsPlaying(false)
+          setIsLoading(false)
+        }
       }
       
-      // Set up media session for background playbook
+      // Execute immediately - no setTimeout, no delays
+      playImmediately()
+      
+      // Media Session API setup
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: song.title,
@@ -52,9 +90,8 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
           album: 'Music Player',
         })
         
-        // Set up media session action handlers
         navigator.mediaSession.setActionHandler('play', () => {
-          if (audioRef.current) {
+          if (audioRef.current && !audioRef.current.ended) {
             audioRef.current.play()
             setIsPlaying(true)
           }
@@ -66,64 +103,19 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
             setIsPlaying(false)
           }
         })
-        
-        // Media session handlers for previous/next will be set up after functions are defined
-        
-        navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (audioRef.current && details.seekTime) {
-            audioRef.current.currentTime = details.seekTime
-            setCurrentTime(details.seekTime)
-          }
-        })
-      }      // Auto-play logic: Windows'ta hemen çal, iOS'ta ilk etkileşimi bekle
-      const handleCanPlayThrough = () => {
-        setIsLoading(false)
-        
-        if (isDesktop) {
-          // Windows/Desktop: Hemen çalmaya başla
-          audio.play().then(() => {
-            setIsPlaying(true)
-          }).catch(() => {
-            setIsPlaying(false)
-          })        } else if (isIOS) {
-          // iOS: User interaction varsa agresif çalmaya çalış
-          if (isUserInteraction) {            // iOS için multiple attempt strategy
-            const tryPlay = async () => {
-              try {
-                await audio.play()
-                setIsPlaying(true)
-              } catch {
-                setIsPlaying(false)
-                // Kısa delay sonra tekrar dene
-                setTimeout(async () => {
-                  try {
-                    await audio.play()
-                    setIsPlaying(true)
-                  } catch {
-                    // Son deneme de başarısız
-                  }
-                }, 200)
-              }
-            }
-            tryPlay()
-          } else {
-            setIsPlaying(false)
-          }
-        } else {
-          // Diğer mobil cihazlar: Hemen çalmayı dene
-          audio.play().then(() => {
-            setIsPlaying(true)
-          }).catch(() => {
-            setIsPlaying(false)
-          })
-        }
-        
-        audio.removeEventListener('canplaythrough', handleCanPlayThrough)
       }
+    } else if (audioRef.current && song && isMounted) {
+      // No user interaction - just set up the audio but don't play
+      const audio = audioRef.current
+      const songUrl = musicService.getPublicUrl(song.file_path)
+      audio.src = songUrl
+      setCurrentTime(0)
+      setIsPlaying(false)
+      setIsLoading(false)
+    }
+  }, [song, isMounted, isUserInteraction])
 
-      audio.addEventListener('canplaythrough', handleCanPlayThrough)    }
-  }, [song, isDesktop, isIOS, isMounted, isUserInteraction])
-
+  // Standard audio event handlers
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -133,36 +125,17 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
       setDuration(audio.duration)
       setIsLoading(false)
     }
-    const handleEnded = () => {
-      if (repeatMode === 'one') {
-        audio.currentTime = 0
-        audio.play()
-      } else if (repeatMode === 'all' || songs.length > 1) {
-        playNext()
-      } else {
-        setIsPlaying(false)
-      }
-    }
-    const handleCanPlay = () => setIsLoading(false)
-    const handleWaiting = () => setIsLoading(true)
-
+    
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
-    audio.addEventListener('ended', handleEnded)
-    audio.addEventListener('canplay', handleCanPlay)
-    audio.addEventListener('waiting', handleWaiting)
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
       audio.removeEventListener('loadedmetadata', updateDuration)
-      audio.removeEventListener('ended', handleEnded)
-      audio.removeEventListener('canplay', handleCanPlay)
-      audio.removeEventListener('waiting', handleWaiting)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repeatMode, songs.length])
+  }, [])
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current
     if (!audio) return
 
@@ -170,8 +143,13 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
       audio.pause()
       setIsPlaying(false)
     } else {
-      audio.play()
-      setIsPlaying(true)
+      try {
+        await audio.play()
+        setIsPlaying(true)
+      } catch (error) {
+        console.log('Playback failed:', error)
+        setIsPlaying(false)
+      }
     }
   }, [isPlaying])
   
@@ -183,8 +161,11 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
       nextIndex = Math.floor(Math.random() * songs.length)
     } else {
       nextIndex = (currentIndex + 1) % songs.length
-    }    onSongChange(songs[nextIndex])
+    }
+
+    onSongChange(songs[nextIndex])
   }, [songs, song.id, isShuffled, onSongChange])
+
   const playPrevious = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let prevIndex
@@ -193,8 +174,32 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
       prevIndex = Math.floor(Math.random() * songs.length)
     } else {
       prevIndex = (currentIndex - 1 + songs.length) % songs.length
-    }    onSongChange(songs[prevIndex])
-  }, [songs, song.id, isShuffled, onSongChange])
+    }
+
+    onSongChange(songs[prevIndex])  }, [songs, song.id, isShuffled, onSongChange])
+
+  // Ended event handler - separate useEffect to use playNext function
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    const handleEnded = () => {
+      if (repeatMode === 'one') {
+        audio.currentTime = 0
+        audio.play()
+      } else if (repeatMode === 'all' || songs.length > 1) {
+        playNext()
+      } else {
+        setIsPlaying(false)
+      }
+    }
+
+    audio.addEventListener('ended', handleEnded)
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded)
+    }
+  }, [repeatMode, songs.length, playNext])
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current
@@ -208,14 +213,15 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
-    const toggleRepeat = (e: React.MouseEvent) => {
+
+  const toggleRepeat = (e: React.MouseEvent) => {
     e.preventDefault()
     const modes: ('off' | 'one' | 'all')[] = ['off', 'one', 'all']
     const currentIndex = modes.indexOf(repeatMode)
     setRepeatMode(modes[(currentIndex + 1) % modes.length])
   }
 
-  // Media Session API handler'larını playNext ve playPrevious tanımlandıktan sonra ayarla
+  // Media Session API handlers
   useEffect(() => {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('nexttrack', () => {
@@ -231,7 +237,6 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
   // Keyboard media keys support
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Prevent default behavior and handle media keys
       switch (event.code) {
         case 'MediaPlayPause':
           event.preventDefault()
@@ -257,43 +262,11 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
       }
     }
 
-    // Add event listener to document
     document.addEventListener('keydown', handleKeyDown)
-
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [togglePlay, playNext, playPrevious]) // Add function dependencies
-  // Set up Media Session API handlers after functions are defined
-  useEffect(() => {
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        const currentIndex = songs.findIndex(s => s.id === song.id)
-        let prevIndex
-        
-        if (isShuffled) {
-          prevIndex = Math.floor(Math.random() * songs.length)
-        } else {
-          prevIndex = (currentIndex - 1 + songs.length) % songs.length
-        }
-        
-        onSongChange(songs[prevIndex])
-      })
-      
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        const currentIndex = songs.findIndex(s => s.id === song.id)
-        let nextIndex
-        
-        if (isShuffled) {
-          nextIndex = Math.floor(Math.random() * songs.length)
-        } else {
-          nextIndex = (currentIndex + 1) % songs.length
-        }
-        
-        onSongChange(songs[nextIndex])
-      })
-    }
-  }, [songs, song.id, isShuffled, onSongChange])
+  }, [togglePlay, playNext, playPrevious])
 
   const handleButtonClick = (callback: () => void) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -305,6 +278,7 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
     const secs = Math.floor(time % 60)
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
+
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
   
   return (
@@ -327,10 +301,12 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
         />
       </div>
 
-      <div className="player-content px-3 mb-3 mb-md-3" style={{backgroundColor: '#2a2a2a'}}>        <div className="row align-items-center">
+      <div className="player-content px-3 mb-3 mb-md-3" style={{backgroundColor: '#2a2a2a'}}>
+        <div className="row align-items-center">
           {/* Song Info */}
           <div className="col-12 col-md-3 mb-2 mb-md-0">
-            <div className="d-flex align-items-center justify-content-center justify-content-md-start">              <div className="song-artwork me-3 d-none d-md-block">
+            <div className="d-flex align-items-center justify-content-center justify-content-md-start">
+              <div className="song-artwork me-3 d-none d-md-block">
                 <i className="bi bi-music-note-beamed display-6 text-primary"></i>
               </div>
               <div className="song-info text-center text-md-start">
@@ -338,8 +314,11 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
                 <small className="text-white">{song.artist || 'Unknown Artist'}</small>
               </div>
             </div>
-          </div>          {/* Controls - Centered */}
-          <div className="col-12 col-md-6"><div className="d-flex justify-content-center align-items-center gap-2 gap-md-3">
+          </div>
+
+          {/* Controls - Centered */}
+          <div className="col-12 col-md-6">
+            <div className="d-flex justify-content-center align-items-center gap-2 gap-md-3">
               <button
                 className="btn btn-link text-white control-btn"
                 onClick={handleButtonClick(toggleShuffle)}
@@ -356,7 +335,9 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
                 type="button"
               >
                 <i className="bi bi-skip-start-fill fs-5"></i>
-              </button>              <button
+              </button>
+
+              <button
                 className="btn btn-primary btn-lg rounded-circle play-btn"
                 onClick={handleButtonClick(togglePlay)}
                 disabled={isLoading}
@@ -395,19 +376,23 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
                   repeatMode === 'off' ? 'bi-repeat' :
                   repeatMode === 'one' ? 'bi-repeat-1' :
                   'bi-repeat'
-                } fs-5 ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>              </button>
+                } fs-5 ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>
+              </button>
             </div>
           </div>
 
           {/* Right spacer for desktop balance */}
-          <div className="col-3 d-none d-md-block"></div>
-        </div>
-      </div>      <style jsx>{`
+          <div className="col-3 d-none d-md-block"></div>        </div>
+      </div>
+
+      <style jsx>{`
         .music-player {
           z-index: 1050;
           max-height: 150px;
           border-top: 1px solid #404040 !important;
-        }.song-artwork {
+        }
+
+        .song-artwork {
           width: 50px;
           height: 50px;
           display: flex;
@@ -458,7 +443,6 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
           transform: scale(0.95);
         }
         
-        /* Ensure consistent spacing on all screen sizes */
         .gap-2 {
           gap: 0.5rem !important;
         }
@@ -466,7 +450,8 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
         .gap-md-3 {
           gap: 1rem !important;
         }
-          @media (max-width: 768px) {
+
+        @media (max-width: 768px) {
           .music-player {
             max-height: 180px;
           }
@@ -482,7 +467,6 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
             min-height: 50px;
           }
           
-          /* Ensure proper spacing on mobile */
           .gap-2 {
             gap: 0.25rem !important;
           }

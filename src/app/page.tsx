@@ -42,20 +42,21 @@ export default function Home() {
     setSongs(prev => [newSong, ...prev])
     setError(null) // Clear any previous errors
   }
-
-  const handlePlaySong = (song: Song) => {
+    const handlePlaySong = async (song: Song) => {
     setCurrentSong(song)
     setIsUserInteraction(true)
     
-    // Reset user interaction flag after a longer timeout to ensure it reaches the player
-    setTimeout(() => setIsUserInteraction(false), 2000) // 2 saniye - daha uzun
+    // Keep user interaction flag longer to ensure MusicPlayer catches it
+    if (song.id !== currentSong?.id) {
+      setTimeout(() => setIsUserInteraction(false), 200) // 200ms - enough time for useEffect
+    }
   }
 
   const handleSongChange = (song: Song) => {
     // Şarkı değişimi (next/previous) de user interaction olarak say
     setCurrentSong(song) 
     setIsUserInteraction(true)
-    setTimeout(() => setIsUserInteraction(false), 2000)
+    setTimeout(() => setIsUserInteraction(false), 500) // 500ms - daha kısa
   }
 
   const retryLoadSongs = () => {
