@@ -148,11 +148,16 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
-
-  const toggleRepeat = () => {
+  const toggleRepeat = (e: React.MouseEvent) => {
+    e.preventDefault()
     const modes: ('off' | 'one' | 'all')[] = ['off', 'one', 'all']
     const currentIndex = modes.indexOf(repeatMode)
     setRepeatMode(modes[(currentIndex + 1) % modes.length])
+  }
+
+  const handleButtonClick = (callback: () => void) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    callback()
   }
 
   const formatTime = (time: number) => {
@@ -197,68 +202,70 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
               </div>
             </div>
           </div>          {/* Controls */}
-          <div className="col-8 col-md-9">
-            <div className="d-flex justify-content-center align-items-center">
+          <div className="col-8 col-md-9">            <div className="d-flex justify-content-center align-items-center gap-2 gap-md-3">
               <button
-                className="btn btn-link text-white me-2"
-                onClick={toggleShuffle}
-                title={isShuffled ? 'Karıştırma Açık' : 'Karıştırma Kapalı'}
+                className="btn btn-link text-white control-btn"
+                onClick={handleButtonClick(toggleShuffle)}
+                title={isShuffled ? 'Shuffle On' : 'Shuffle Off'}
+                type="button"
               >
-                <i className={`bi bi-shuffle ${isShuffled ? 'text-primary' : ''}`}></i>
+                <i className={`bi bi-shuffle fs-5 ${isShuffled ? 'text-primary' : ''}`}></i>
               </button>
 
               <button
-                className="btn btn-link text-white me-3"
-                onClick={playPrevious}
-                title="Önceki"
+                className="btn btn-link text-white control-btn"
+                onClick={handleButtonClick(playPrevious)}
+                title="Previous"
+                type="button"
               >
-                <i className="bi bi-skip-start-fill"></i>
+                <i className="bi bi-skip-start-fill fs-5"></i>
               </button>
 
               <button
-                className="btn btn-primary btn-lg rounded-circle me-3"
-                onClick={togglePlay}
+                className="btn btn-primary btn-lg rounded-circle play-btn"
+                onClick={handleButtonClick(togglePlay)}
                 disabled={isLoading}
-                title={isPlaying ? 'Duraklat' : 'Çal'}
+                title={isPlaying ? 'Pause' : 'Play'}
+                type="button"
               >
                 {isLoading ? (
-                  <i className="bi bi-hourglass-split"></i>
+                  <i className="bi bi-hourglass-split fs-4"></i>
                 ) : isPlaying ? (
-                  <i className="bi bi-pause-fill"></i>
+                  <i className="bi bi-pause-fill fs-4"></i>
                 ) : (
-                  <i className="bi bi-play-fill"></i>
+                  <i className="bi bi-play-fill fs-4"></i>
                 )}
               </button>
 
               <button
-                className="btn btn-link text-white me-2"
-                onClick={playNext}
-                title="Sonraki"
+                className="btn btn-link text-white control-btn"
+                onClick={handleButtonClick(playNext)}
+                title="Next"
+                type="button"
               >
-                <i className="bi bi-skip-end-fill"></i>
+                <i className="bi bi-skip-end-fill fs-5"></i>
               </button>
 
               <button
-                className="btn btn-link text-white"
+                className="btn btn-link text-white control-btn"
                 onClick={toggleRepeat}
                 title={
-                  repeatMode === 'off' ? 'Tekrar Kapalı' :
-                  repeatMode === 'one' ? 'Bir Şarkı Tekrar' :
-                  'Tüm Liste Tekrar'
+                  repeatMode === 'off' ? 'Repeat Off' :
+                  repeatMode === 'one' ? 'Repeat One' :
+                  'Repeat All'
                 }
+                type="button"
               >
                 <i className={`bi ${
                   repeatMode === 'off' ? 'bi-repeat' :
                   repeatMode === 'one' ? 'bi-repeat-1' :
                   'bi-repeat'
-                } ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>
+                } fs-5 ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      <style jsx>{`
+      </div>      <style jsx>{`
         .music-player {
           z-index: 1050;
           max-height: 150px;
@@ -279,18 +286,48 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           font-weight: 600;
         }
         
-        .btn-link {
-          padding: 0.25rem 0.5rem;
-          border: none;
-          background: none;
-        }
-        
-        .btn-primary.btn-lg {
-          width: 50px;
-          height: 50px;
+        .control-btn {
+          min-width: 44px;
+          min-height: 44px;
           display: flex;
           align-items: center;
           justify-content: center;
+          border: none;
+          background: none;
+          border-radius: 8px;
+          transition: background-color 0.2s ease;
+        }
+        
+        .control-btn:hover,
+        .control-btn:focus {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-btn:active {
+          background-color: rgba(255, 255, 255, 0.2);
+          transform: scale(0.95);
+        }
+        
+        .play-btn {
+          min-width: 56px;
+          min-height: 56px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.1s ease;
+        }
+        
+        .play-btn:active {
+          transform: scale(0.95);
+        }
+        
+        /* Ensure consistent spacing on all screen sizes */
+        .gap-2 {
+          gap: 0.5rem !important;
+        }
+        
+        .gap-md-3 {
+          gap: 1rem !important;
         }
         
         @media (max-width: 768px) {
@@ -298,14 +335,32 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
             display: none !important;
           }
           
-          .btn-link {
-            padding: 0.1rem 0.25rem;
-            font-size: 0.9rem;
+          .control-btn {
+            min-width: 44px;
+            min-height: 44px;
+            font-size: 1.1rem;
           }
           
-          .btn-primary.btn-lg {
-            width: 45px;
-            height: 45px;
+          .play-btn {
+            min-width: 50px;
+            min-height: 50px;
+          }
+          
+          /* Ensure proper spacing on mobile */
+          .gap-2 {
+            gap: 0.25rem !important;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          .control-btn {
+            min-width: 40px;
+            min-height: 40px;
+          }
+          
+          .play-btn {
+            min-width: 48px;
+            min-height: 48px;
           }
         }
       `}</style>
