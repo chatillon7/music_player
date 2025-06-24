@@ -79,7 +79,7 @@ export default function SongList({ songs, currentSong, onPlaySong, onDeleteSong 
           
           <div className="song-actions">
             <button
-              className="btn btn-sm btn-outline-primary me-2"
+              className="btn btn-sm btn-outline-dark me-2"
               onClick={() => onPlaySong(song)}
               title="Çal"
             >
@@ -117,12 +117,12 @@ export default function SongList({ songs, currentSong, onPlaySong, onDeleteSong 
         }
         
         .song-item:hover {
-          background-color: #f8f9fa;
+          background-color:rgb(255, 245, 231);
         }
         
         .song-item.active {
-          background-color: #e7f1ff;
-          border-color: #0d6efd;
+          background-color:rgb(255, 245, 231);
+          border-color:rgb(253, 133, 13);
         }
         
         .song-info {

@@ -2,8 +2,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #0d6efd;
-  --secondary: #6c757d;
+  --primary: #ff9900;
+  --secondary: #7d746c;
 }
 
 html,
@@ -104,7 +104,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-track {
-  background: #dee2e6;
+  background: #8e8e8e;
   height: 4px;
   border-radius: 2px;
 }
@@ -120,7 +120,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-moz-range-track {
-  background: #dee2e6;
+  background: #8e8e8e;
   height: 4px;
   border-radius: 2px;
   border: none;

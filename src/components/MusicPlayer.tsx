@@ -12,8 +12,6 @@ interface MusicPlayerProps {
 export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [isMuted, setIsMuted] = useState(false)
   const [isShuffled, setIsShuffled] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
   const [isLoading, setIsLoading] = useState(true)
@@ -147,29 +145,6 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
     setCurrentTime(newTime)
   }
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const newVolume = parseFloat(e.target.value) / 100
-    audio.volume = newVolume
-    setVolume(newVolume)
-    setIsMuted(newVolume === 0)
-  }
-
-  const toggleMute = () => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    if (isMuted) {
-      audio.volume = volume
-      setIsMuted(false)
-    } else {
-      audio.volume = 0
-      setIsMuted(true)
-    }
-  }
-
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
@@ -221,10 +196,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
                 <small className="text-white">{song.artist || 'Unknown Artist'}</small>
               </div>
             </div>
-          </div>
-
-          {/* Controls */}
-          <div className="col-4 col-md-6">
+          </div>          {/* Controls */}
+          <div className="col-8 col-md-9">
             <div className="d-flex justify-content-center align-items-center">
               <button
                 className="btn btn-link text-white me-2"
@@ -280,32 +253,6 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
                   'bi-repeat'
                 } ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>
               </button>
-            </div>
-          </div>
-
-          {/* Volume */}
-          <div className="col-4 col-md-3">
-            <div className="d-flex justify-content-end align-items-center">
-              <button
-                className="btn btn-link text-white me-2"
-                onClick={toggleMute}
-                title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
-              >
-                <i className={`bi ${
-                  isMuted || volume === 0 ? 'bi-volume-mute' :
-                  volume < 0.5 ? 'bi-volume-down' :
-                  'bi-volume-up'
-                }`}></i>
-              </button>
-              <input
-                type="range"
-                className="form-range d-none d-md-block"
-                style={{ width: '80px' }}
-                min="0"
-                max="100"
-                value={isMuted ? 0 : volume * 100}
-                onChange={handleVolumeChange}
-              />
             </div>
           </div>
         </div>

@@ -108,7 +108,7 @@ export default function SongUpload({ onSongUploaded }: SongUploadProps) {
         
         {isUploading ? (
           <div className="text-center">
-            <div className="spinner-border text-primary mb-3" role="status">
+            <div className="spinner-border text-dark mb-3" role="status">
               <span className="visually-hidden">Yükleniyor...</span>
             </div>
             <p className="mb-2">Dosya yükleniyor...</p>
@@ -125,7 +125,7 @@ export default function SongUpload({ onSongUploaded }: SongUploadProps) {
             <i className="bi bi-cloud-upload display-4 text-muted mb-3"></i>
             <h5>MP3 dosyasını buraya sürükleyin</h5>
             <p className="text-muted">veya tıklayarak dosya seçin</p>
-            <button className="btn btn-primary">
+            <button className="btn btn-dark">
               <i className="bi bi-folder-plus me-2"></i>
               Dosya Seç
             </button>
@@ -140,17 +140,17 @@ export default function SongUpload({ onSongUploaded }: SongUploadProps) {
           padding: 3rem 2rem;
           cursor: pointer;
           transition: all 0.3s ease;
-          background-color: #f8f9fa;
+          background-color:rgb(250, 249, 248);
         }
         
         .upload-dropzone:hover {
-          border-color: #0d6efd;
-          background-color: #e7f1ff;
+          border-color:rgba(239, 255, 227, 0.64);
+          background-color:rgb(239, 255, 227);
         }
         
         .upload-dropzone.dragging {
-          border-color: #0d6efd;
-          background-color: #e7f1ff;
+          border-color:rgba(239, 255, 227, 0.64);
+          background-color:rgb(239, 255, 227);
           transform: scale(1.02);
         }
         
