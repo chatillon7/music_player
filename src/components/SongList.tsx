@@ -77,12 +77,10 @@ export default function SongList({ songs, currentSong, onPlaySong }: SongListPro
           background-color: rgba(255, 146, 48, 0.1);
           border-color: var(--primary);
         }
-        
-        .song-info {
+          .song-info {
           display: flex;
           align-items: center;
           flex: 1;
-          pointer-events: none;
         }
         
         .song-icon {

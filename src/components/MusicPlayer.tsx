@@ -16,19 +16,26 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const [isShuffled, setIsShuffled] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
   const [isLoading, setIsLoading] = useState(true)
-  const [hasUserInteracted, setHasUserInteracted] = useState(false)
-  const [shouldAutoPlay, setShouldAutoPlay] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   
   const audioRef = useRef<HTMLAudioElement>(null)
-    useEffect(() => {
-    if (audioRef.current && song) {
+  // Component mount detection
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+    // Platform detection - Windows'ta autoplay hemen çalışsın (sadece client-side)
+  const isIOS = isMounted && /iPad|iPhone|iPod/.test(navigator.userAgent)
+  const isDesktop = isMounted && !(/Android|iPad|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+
+  useEffect(() => {
+    if (audioRef.current && song && isMounted) {
       const audio = audioRef.current
       const songUrl = musicService.getPublicUrl(song.file_path)
       audio.src = songUrl
       setIsLoading(true)
       setCurrentTime(0)
       
-      // Set up media session for background playback
+      // Set up media session for background playbook
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: song.title,
@@ -59,67 +66,77 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
             setCurrentTime(details.seekTime)
           }
         })
-      }
-
-      // Auto-play logic for iOS compatibility
+      }      // Auto-play logic: Windows'ta hemen çal, iOS'ta ilk etkileşimi bekle
       const handleCanPlayThrough = () => {
         setIsLoading(false)
-        // Only attempt autoplay if user has interacted and autoplay is requested
-        if (hasUserInteracted && shouldAutoPlay) {
+        
+        if (isDesktop) {
+          // Windows/Desktop: Hemen çalmaya başla
           audio.play().then(() => {
             setIsPlaying(true)
-            setShouldAutoPlay(false) // Reset autoplay flag
-          }).catch((error) => {
-            console.log('Auto-play prevented:', error)
+          }).catch(() => {
             setIsPlaying(false)
-            setShouldAutoPlay(false)
+          })
+        } else if (isIOS) {
+          // iOS: Kullanıcı etkileşimi bekle
+          setIsPlaying(false)
+        } else {
+          // Diğer mobil cihazlar: Hemen çalmayı dene
+          audio.play().then(() => {
+            setIsPlaying(true)
+          }).catch(() => {
+            setIsPlaying(false)
           })
         }
+        
         audio.removeEventListener('canplaythrough', handleCanPlayThrough)
       }
 
       audio.addEventListener('canplaythrough', handleCanPlayThrough)
     }
-  }, [song, hasUserInteracted, shouldAutoPlay])
+  }, [song, isDesktop, isIOS, isMounted])
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
     const updateTime = () => setCurrentTime(audio.currentTime)
-    
     const updateDuration = () => {
       setDuration(audio.duration)
       setIsLoading(false)
-    }    
+    }
+    const handleEnded = () => {
+      if (repeatMode === 'one') {
+        audio.currentTime = 0
+        audio.play()
+      } else if (repeatMode === 'all' || songs.length > 1) {
+        playNext()
+      } else {
+        setIsPlaying(false)
+      }
+    }
     const handleCanPlay = () => setIsLoading(false)
     const handleWaiting = () => setIsLoading(true)
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
+    audio.addEventListener('ended', handleEnded)
     audio.addEventListener('canplay', handleCanPlay)
     audio.addEventListener('waiting', handleWaiting)
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime)
       audio.removeEventListener('loadedmetadata', updateDuration)
+      audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('canplay', handleCanPlay)
       audio.removeEventListener('waiting', handleWaiting)
-    }}, [repeatMode, songs.length])
-
-  // Handle user interaction to enable autoplay
-  const handleUserInteraction = useCallback(() => {
-    if (!hasUserInteracted) {
-      setHasUserInteracted(true)
     }
-  }, [hasUserInteracted])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repeatMode, songs.length])
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
-
-    // Mark user interaction on first play
-    handleUserInteraction()
 
     if (isPlaying) {
       audio.pause()
@@ -128,7 +145,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       audio.play()
       setIsPlaying(true)
     }
-  }, [isPlaying, handleUserInteraction])
+  }, [isPlaying])
   
   const playNext = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
@@ -138,16 +155,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       nextIndex = Math.floor(Math.random() * songs.length)
     } else {
       nextIndex = (currentIndex + 1) % songs.length
-    }
-    
-    // Set autoplay flag for next song if user has interacted
-    if (hasUserInteracted) {
-      setShouldAutoPlay(true)
-    }
-    
-    onSongChange(songs[nextIndex])
-  }, [songs, song.id, isShuffled, onSongChange, hasUserInteracted])
-  
+    }    onSongChange(songs[nextIndex])
+  }, [songs, song.id, isShuffled, onSongChange])
   const playPrevious = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let prevIndex
@@ -156,15 +165,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       prevIndex = Math.floor(Math.random() * songs.length)
     } else {
       prevIndex = (currentIndex - 1 + songs.length) % songs.length
-    }
-    
-    // Set autoplay flag for previous song if user has interacted
-    if (hasUserInteracted) {
-      setShouldAutoPlay(true)
-    }
-    
-    onSongChange(songs[prevIndex])
-  }, [songs, song.id, isShuffled, onSongChange, hasUserInteracted])
+    }    onSongChange(songs[prevIndex])
+  }, [songs, song.id, isShuffled, onSongChange])
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current
@@ -178,42 +180,13 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
-    const toggleRepeat = (e: React.MouseEvent) => {
+  
+  const toggleRepeat = (e: React.MouseEvent) => {
     e.preventDefault()
     const modes: ('off' | 'one' | 'all')[] = ['off', 'one', 'all']
     const currentIndex = modes.indexOf(repeatMode)
     setRepeatMode(modes[(currentIndex + 1) % modes.length])
   }
-
-  // Separate effect for handling song end to avoid dependency issues
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const handleEnded = () => {
-      if (repeatMode === 'one') {
-        audio.currentTime = 0
-        // For repeat one, we can play immediately since user has already interacted
-        if (hasUserInteracted) {
-          audio.play()
-        }
-      } else if (repeatMode === 'all' || songs.length > 1) {
-        // Set autoplay flag for next song if user has interacted
-        if (hasUserInteracted) {
-          setShouldAutoPlay(true)
-        }
-        playNext()
-      } else {
-        setIsPlaying(false)
-      }
-    }
-
-    audio.addEventListener('ended', handleEnded)
-
-    return () => {
-      audio.removeEventListener('ended', handleEnded)
-    }
-  }, [repeatMode, songs.length, hasUserInteracted, playNext])
 
   // Keyboard media keys support
   useEffect(() => {
