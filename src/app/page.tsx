@@ -65,11 +65,11 @@ export default function Home() {
   return (
     <div className="container-fluid p-0">
       {/* Header */}
-      <nav className="navbar navbar-dark bg-primary sticky-top">
+      <nav className="navbar navbar-dark bg-dark sticky-top">
         <div className="container-fluid">
           <span className="navbar-brand mb-0 h1">
             <i className="bi bi-music-note-beamed me-2"></i>
-            Müzik Çalar
+            Orange
           </span>
         </div>
       </nav>

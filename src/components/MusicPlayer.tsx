@@ -9,8 +9,7 @@ interface MusicPlayerProps {
   onSongChange: (song: Song) => void
 }
 
-export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
+export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
@@ -18,15 +17,21 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const [isShuffled, setIsShuffled] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
   const [isLoading, setIsLoading] = useState(true)
+  const [wasPlaying, setWasPlaying] = useState(false) // Track if we were playing before song change
   
   const audioRef = useRef<HTMLAudioElement>(null)
+  
   useEffect(() => {
     if (audioRef.current && song) {
       const audio = audioRef.current
       const songUrl = musicService.getPublicUrl(song.file_path)
       
+      // Remember if we were playing before changing songs
+      setWasPlaying(isPlaying)
+      
       audio.src = songUrl
       setIsLoading(true)
+      setCurrentTime(0)
       
       // Set up media session for background playback
       if ('mediaSession' in navigator) {
@@ -36,8 +41,23 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           album: 'Music Player',
         })
       }
+
+      // Auto-play the new song if we were playing before
+      const handleCanPlayThrough = () => {
+        if (wasPlaying) {
+          audio.play().then(() => {
+            setIsPlaying(true)
+          }).catch((error) => {
+            console.log('Auto-play prevented:', error)
+            setIsPlaying(false)
+          })
+        }
+        audio.removeEventListener('canplaythrough', handleCanPlayThrough)
+      }
+
+      audio.addEventListener('canplaythrough', handleCanPlayThrough)
     }
-  }, [song])
+  }, [song]) // Remove isPlaying and wasPlaying from dependencies to avoid loops
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -88,7 +108,6 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       setIsPlaying(true)
     }
   }
-
   const playNext = () => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let nextIndex
@@ -99,6 +118,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       nextIndex = (currentIndex + 1) % songs.length
     }
 
+    // Remember that we want to continue playing
+    setWasPlaying(isPlaying)
     onSongChange(songs[nextIndex])
   }
 
@@ -112,6 +133,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       prevIndex = (currentIndex - 1 + songs.length) % songs.length
     }
 
+    // Remember that we want to continue playing
+    setWasPlaying(isPlaying)
     onSongChange(songs[prevIndex])
   }
 
@@ -166,12 +189,12 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
-    <div className="music-player fixed-bottom bg-white border-top shadow-lg">
+    <div className="music-player fixed-bottom bg-dark border-top shadow-lg">
       <audio ref={audioRef} />
       
       {/* Progress Bar */}
       <div className="progress-container p-2">
-        <div className="d-flex justify-content-between small text-muted mb-1">
+        <div className="d-flex justify-content-between small text-secondary mb-1">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
@@ -191,11 +214,11 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           <div className="col-4 col-md-3">
             <div className="d-flex align-items-center">
               <div className="song-artwork me-3">
-                <i className="bi bi-music-note-beamed display-6 text-primary"></i>
+                <i className="bi bi-music-note-beamed display-6 text-dark"></i>
               </div>
               <div className="song-info d-none d-md-block">
-                <h6 className="song-title mb-0">{song.title}</h6>
-                <small className="text-muted">{song.artist || 'Unknown Artist'}</small>
+                <h6 className="song-title mb-0 text-white">{song.title}</h6>
+                <small className="text-white">{song.artist || 'Unknown Artist'}</small>
               </div>
             </div>
           </div>
@@ -204,7 +227,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           <div className="col-4 col-md-6">
             <div className="d-flex justify-content-center align-items-center">
               <button
-                className="btn btn-link text-muted me-2"
+                className="btn btn-link text-white me-2"
                 onClick={toggleShuffle}
                 title={isShuffled ? 'Karıştırma Açık' : 'Karıştırma Kapalı'}
               >
@@ -212,7 +235,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
               </button>
 
               <button
-                className="btn btn-link text-muted me-3"
+                className="btn btn-link text-white me-3"
                 onClick={playPrevious}
                 title="Önceki"
               >
@@ -235,7 +258,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
               </button>
 
               <button
-                className="btn btn-link text-muted me-2"
+                className="btn btn-link text-white me-2"
                 onClick={playNext}
                 title="Sonraki"
               >
@@ -243,7 +266,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
               </button>
 
               <button
-                className="btn btn-link text-muted"
+                className="btn btn-link text-white"
                 onClick={toggleRepeat}
                 title={
                   repeatMode === 'off' ? 'Tekrar Kapalı' :
@@ -264,7 +287,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           <div className="col-4 col-md-3">
             <div className="d-flex justify-content-end align-items-center">
               <button
-                className="btn btn-link text-muted me-2"
+                className="btn btn-link text-white me-2"
                 onClick={toggleMute}
                 title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
               >
