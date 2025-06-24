@@ -18,9 +18,14 @@ export const metadata: Metadata = {
   title: "Müzik Çalar - Music Player",
   description: "Modern müzik çalar uygulaması. MP3 dosyalarınızı yükleyin, çalın ve yönetin.",
   manifest: "/manifest.json",
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Müzik Çalar"
   }
 };
@@ -31,7 +36,7 @@ export function generateViewport() {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    themeColor: '#0d6efd'
+    themeColor: '#ff9230'
   }
 }
 
@@ -44,9 +49,10 @@ export default function RootLayout({
     <html lang="tr">
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Müzik Çalar" />
-        <link rel="apple-touch-icon" href="/icon-192x192.svg" />
+        <link rel="apple-touch-icon" href="/icon.png" />
+        <link rel="icon" href="/icon.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}

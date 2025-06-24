@@ -1,23 +1,30 @@
 {
-  "name": "Müzik Çalar - Music Player",
+  "name": "Müzik Çalar",
   "short_name": "Müzik Çalar",
-  "description": "Modern müzik çalar uygulaması",
+  "description": "Modern müzik çalar uygulaması - Dark theme with orange accent",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0d0d0d",
-  "orientation": "portrait",  "icons": [
+  "background_color": "#1e1e1e",
+  "theme_color": "#ff9230",
+  "orientation": "portrait",
+  "icons": [
     {
-      "src": "/icon-192x192.svg",
+      "src": "/icon.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512x512.svg",
+      "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
     }
   ],
   "screenshots": [

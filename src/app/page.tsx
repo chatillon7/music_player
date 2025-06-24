@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import MusicPlayer from '@/components/MusicPlayer'
 import SongUpload from '@/components/SongUpload'
 import SongList from '@/components/SongList'
@@ -56,8 +57,9 @@ export default function Home() {
       {/* Header */}
       <nav className="navbar navbar-dark sticky-top" style={{backgroundColor: '#2a2a2a'}}>
         <div className="container-fluid">
-          <span className="navbar-brand mb-0 h1">
-            <i className="bi bi-music-note-beamed me-2 text-primary"></i>
+          <span className="navbar-brand mb-0 h1 d-flex align-items-center">
+            <Image src="/icon.png" alt="Müzik Çalar" width={32} height={32} className="me-2" />
+            <span className="text-white">Müzik Çalar</span>
           </span>
         </div>
       </nav>
