@@ -7,9 +7,10 @@ interface MusicPlayerProps {
   song: Song
   songs: Song[]
   onSongChange: (song: Song) => void
+  isUserInteraction?: boolean
 }
 
-export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {
+export default function MusicPlayer({ song, songs, onSongChange, isUserInteraction = false }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -76,10 +77,17 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
             setIsPlaying(true)
           }).catch(() => {
             setIsPlaying(false)
-          })
-        } else if (isIOS) {
-          // iOS: Kullanıcı etkileşimi bekle
-          setIsPlaying(false)
+          })        } else if (isIOS) {
+          // iOS: User interaction varsa çalmaya çalış, yoksa bekle
+          if (isUserInteraction) {
+            audio.play().then(() => {
+              setIsPlaying(true)
+            }).catch(() => {
+              setIsPlaying(false)
+            })
+          } else {
+            setIsPlaying(false)
+          }
         } else {
           // Diğer mobil cihazlar: Hemen çalmayı dene
           audio.play().then(() => {
@@ -92,9 +100,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
         audio.removeEventListener('canplaythrough', handleCanPlayThrough)
       }
 
-      audio.addEventListener('canplaythrough', handleCanPlayThrough)
-    }
-  }, [song, isDesktop, isIOS, isMounted])
+      audio.addEventListener('canplaythrough', handleCanPlayThrough)    }
+  }, [song, isDesktop, isIOS, isMounted, isUserInteraction])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -180,13 +187,25 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
-  
-  const toggleRepeat = (e: React.MouseEvent) => {
+    const toggleRepeat = (e: React.MouseEvent) => {
     e.preventDefault()
     const modes: ('off' | 'one' | 'all')[] = ['off', 'one', 'all']
     const currentIndex = modes.indexOf(repeatMode)
     setRepeatMode(modes[(currentIndex + 1) % modes.length])
   }
+
+  // Media Session API handler'larını playNext ve playPrevious tanımlandıktan sonra ayarla
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNext()
+      })
+      
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrevious()
+      })
+    }
+  }, [playNext, playPrevious])
 
   // Keyboard media keys support
   useEffect(() => {

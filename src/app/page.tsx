@@ -11,6 +11,7 @@ import { handleError, isSupabaseConfigured, AppError } from '@/lib/errors'
 export default function Home() {
   const [songs, setSongs] = useState<Song[]>([])
   const [currentSong, setCurrentSong] = useState<Song | null>(null)
+  const [isUserInteraction, setIsUserInteraction] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<AppError | null>(null)
 
@@ -42,9 +43,12 @@ export default function Home() {
     setSongs(prev => [newSong, ...prev])
     setError(null) // Clear any previous errors
   }
-
   const handlePlaySong = (song: Song) => {
     setCurrentSong(song)
+    setIsUserInteraction(true)
+    
+    // Reset user interaction flag after timeout
+    setTimeout(() => setIsUserInteraction(false), 1000)
   }
 
   const retryLoadSongs = () => {
@@ -140,14 +144,13 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Music Player - Fixed Bottom */}
+      </div>      {/* Music Player - Fixed Bottom */}
       {currentSong && (
         <MusicPlayer 
           song={currentSong}
           songs={songs}
           onSongChange={setCurrentSong}
+          isUserInteraction={isUserInteraction}
         />
       )}
     </div>
