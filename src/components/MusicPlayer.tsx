@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { musicService, Song } from '@/lib/supabase'
 
 interface MusicPlayerProps {
@@ -9,13 +9,13 @@ interface MusicPlayerProps {
   onSongChange: (song: Song) => void
 }
 
-export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {  const [isPlaying, setIsPlaying] = useState(false)
+export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isShuffled, setIsShuffled] = useState(false)
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off')
   const [isLoading, setIsLoading] = useState(true)
-  const [wasPlaying, setWasPlaying] = useState(false) // Track if we were playing before song change
   
   const audioRef = useRef<HTMLAudioElement>(null)
   
@@ -30,26 +30,44 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       audio.src = songUrl
       setIsLoading(true)
       setCurrentTime(0)
-      
-      // Set up media session for background playback
+        // Set up media session for background playback
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: song.title,
           artist: song.artist || 'Unknown Artist',
           album: 'Music Player',
         })
-      }
-
-      // Auto-play the new song if we were playing before
-      const handleCanPlayThrough = () => {
-        if (wasPlaying) {
-          audio.play().then(() => {
+        
+        // Set up media session action handlers
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (audioRef.current) {
+            audioRef.current.play()
             setIsPlaying(true)
-          }).catch((error) => {
-            console.log('Auto-play prevented:', error)
+          }
+        })
+          navigator.mediaSession.setActionHandler('pause', () => {
+          if (audioRef.current) {
+            audioRef.current.pause()
             setIsPlaying(false)
-          })
-        }
+          }
+        })
+        
+        // Media session handlers for previous/next will be set up after functions are defined
+        
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (audioRef.current && details.seekTime) {
+            audioRef.current.currentTime = details.seekTime
+            setCurrentTime(details.seekTime)
+          }
+        })
+      }// Auto-play the new song (always start when a song is selected)
+      const handleCanPlayThrough = () => {
+        audio.play().then(() => {
+          setIsPlaying(true)
+        }).catch((error) => {
+          console.log('Auto-play prevented:', error)
+          setIsPlaying(false)
+        })
         audio.removeEventListener('canplaythrough', handleCanPlayThrough)
       }
 
@@ -94,7 +112,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repeatMode, songs.length])
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
 
@@ -105,8 +123,9 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       audio.play()
       setIsPlaying(true)
     }
-  }
-  const playNext = () => {
+  }, [isPlaying])
+  
+  const playNext = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let nextIndex
 
@@ -119,9 +138,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
     // Remember that we want to continue playing
     setWasPlaying(isPlaying)
     onSongChange(songs[nextIndex])
-  }
-
-  const playPrevious = () => {
+  }, [songs, song.id, isShuffled, isPlaying, onSongChange])
+  const playPrevious = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let prevIndex
 
@@ -134,7 +152,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
     // Remember that we want to continue playing
     setWasPlaying(isPlaying)
     onSongChange(songs[prevIndex])
-  }
+  }, [songs, song.id, isShuffled, isPlaying, onSongChange])
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current
@@ -148,12 +166,80 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
   const toggleShuffle = () => {
     setIsShuffled(!isShuffled)
   }
+  
   const toggleRepeat = (e: React.MouseEvent) => {
     e.preventDefault()
     const modes: ('off' | 'one' | 'all')[] = ['off', 'one', 'all']
     const currentIndex = modes.indexOf(repeatMode)
     setRepeatMode(modes[(currentIndex + 1) % modes.length])
   }
+
+  // Keyboard media keys support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent default behavior and handle media keys
+      switch (event.code) {
+        case 'MediaPlayPause':
+          event.preventDefault()
+          togglePlay()
+          break
+        case 'MediaTrackNext':
+          event.preventDefault()
+          playNext()
+          break
+        case 'MediaTrackPrevious':
+          event.preventDefault()
+          playPrevious()
+          break
+        case 'MediaStop':
+          event.preventDefault()
+          if (audioRef.current) {
+            audioRef.current.pause()
+            audioRef.current.currentTime = 0
+            setIsPlaying(false)
+            setCurrentTime(0)
+          }
+          break
+      }
+    }
+
+    // Add event listener to document
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [togglePlay, playNext, playPrevious]) // Add function dependencies
+  // Set up Media Session API handlers after functions are defined
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        const currentIndex = songs.findIndex(s => s.id === song.id)
+        let prevIndex
+        
+        if (isShuffled) {
+          prevIndex = Math.floor(Math.random() * songs.length)
+        } else {
+          prevIndex = (currentIndex - 1 + songs.length) % songs.length
+        }
+        
+        onSongChange(songs[prevIndex])
+      })
+      
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        const currentIndex = songs.findIndex(s => s.id === song.id)
+        let nextIndex
+        
+        if (isShuffled) {
+          nextIndex = Math.floor(Math.random() * songs.length)
+        } else {
+          nextIndex = (currentIndex + 1) % songs.length
+        }
+        
+        onSongChange(songs[nextIndex])
+      })
+    }
+  }, [songs, song.id, isShuffled, onSongChange])
 
   const handleButtonClick = (callback: () => void) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -165,16 +251,15 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
     const secs = Math.floor(time % 60)
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
-
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
-
+  
   return (
-    <div className="music-player fixed-bottom bg-dark border-top shadow-lg">
+    <div className="music-player fixed-bottom shadow-lg" style={{backgroundColor: '#2a2a2a'}}>
       <audio ref={audioRef} />
       
       {/* Progress Bar */}
-      <div className="progress-container p-2">
-        <div className="d-flex justify-content-between small text-secondary mb-1">
+      <div className="progress-container p-2" style={{backgroundColor: '#2a2a2a'}}>
+        <div className="d-flex justify-content-between small text-secondary">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
@@ -188,21 +273,19 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
         />
       </div>
 
-      <div className="player-content p-3">
-        <div className="row align-items-center">
+      <div className="player-content px-3 mb-3 mb-md-3" style={{backgroundColor: '#2a2a2a'}}>        <div className="row align-items-center">
           {/* Song Info */}
-          <div className="col-4 col-md-3">
-            <div className="d-flex align-items-center">
-              <div className="song-artwork me-3">
-                <i className="bi bi-music-note-beamed display-6 text-dark"></i>
+          <div className="col-12 col-md-3 mb-2 mb-md-0">
+            <div className="d-flex align-items-center justify-content-center justify-content-md-start">              <div className="song-artwork me-3 d-none d-md-block">
+                <i className="bi bi-music-note-beamed display-6 text-primary"></i>
               </div>
-              <div className="song-info d-none d-md-block">
+              <div className="song-info text-center text-md-start">
                 <h6 className="song-title mb-0 text-white">{song.title}</h6>
                 <small className="text-white">{song.artist || 'Unknown Artist'}</small>
               </div>
             </div>
-          </div>          {/* Controls */}
-          <div className="col-8 col-md-9">            <div className="d-flex justify-content-center align-items-center gap-2 gap-md-3">
+          </div>          {/* Controls - Centered */}
+          <div className="col-12 col-md-6"><div className="d-flex justify-content-center align-items-center gap-2 gap-md-3">
               <button
                 className="btn btn-link text-white control-btn"
                 onClick={handleButtonClick(toggleShuffle)}
@@ -219,9 +302,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
                 type="button"
               >
                 <i className="bi bi-skip-start-fill fs-5"></i>
-              </button>
-
-              <button
+              </button>              <button
                 className="btn btn-primary btn-lg rounded-circle play-btn"
                 onClick={handleButtonClick(togglePlay)}
                 disabled={isLoading}
@@ -229,11 +310,11 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
                 type="button"
               >
                 {isLoading ? (
-                  <i className="bi bi-hourglass-split fs-4"></i>
+                  <i className="bi bi-hourglass-split fs-4 text-white"></i>
                 ) : isPlaying ? (
-                  <i className="bi bi-pause-fill fs-4"></i>
+                  <i className="bi bi-pause-fill fs-4 text-white"></i>
                 ) : (
-                  <i className="bi bi-play-fill fs-4"></i>
+                  <i className="bi bi-play-fill fs-4 text-white"></i>
                 )}
               </button>
 
@@ -260,24 +341,26 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
                   repeatMode === 'off' ? 'bi-repeat' :
                   repeatMode === 'one' ? 'bi-repeat-1' :
                   'bi-repeat'
-                } fs-5 ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>
-              </button>
+                } fs-5 ${repeatMode !== 'off' ? 'text-primary' : ''}`}></i>              </button>
             </div>
           </div>
+
+          {/* Right spacer for desktop balance */}
+          <div className="col-3 d-none d-md-block"></div>
         </div>
       </div>      <style jsx>{`
         .music-player {
           z-index: 1050;
           max-height: 150px;
-        }
-        
-        .song-artwork {
+          border-top: 1px solid #404040 !important;
+        }.song-artwork {
           width: 50px;
           height: 50px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background-color: #f8f9fa;
+          background-color: var(--background-secondary);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
         }
         
@@ -329,10 +412,9 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
         .gap-md-3 {
           gap: 1rem !important;
         }
-        
-        @media (max-width: 768px) {
-          .song-info {
-            display: none !important;
+          @media (max-width: 768px) {
+          .music-player {
+            max-height: 180px;
           }
           
           .control-btn {
@@ -349,6 +431,14 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
           /* Ensure proper spacing on mobile */
           .gap-2 {
             gap: 0.25rem !important;
+          }
+          
+          .song-info {
+            font-size: 0.8rem;
+          }
+          
+          .song-title {
+            font-size: 0.8rem !important;
           }
         }
         

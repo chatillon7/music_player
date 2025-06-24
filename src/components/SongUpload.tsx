@@ -105,16 +105,15 @@ export default function SongUpload({ onSongUploaded }: SongUploadProps) {
           onChange={handleInputChange}
           style={{ display: 'none' }}
         />
-        
-        {isUploading ? (
+          {isUploading ? (
           <div className="text-center">
-            <div className="spinner-border text-dark mb-3" role="status">
+            <div className="spinner-border text-primary mb-3" role="status">
               <span className="visually-hidden">Yükleniyor...</span>
             </div>
-            <p className="mb-2">Dosya yükleniyor...</p>
+            <p className="mb-2 text-white">Dosya yükleniyor...</p>
             <div className="progress">
               <div 
-                className="progress-bar" 
+                className="progress-bar bg-primary" 
                 role="progressbar" 
                 style={{ width: `${uploadProgress}%` }}
               ></div>
@@ -122,49 +121,13 @@ export default function SongUpload({ onSongUploaded }: SongUploadProps) {
           </div>
         ) : (
           <div className="text-center">
-            <i className="bi bi-cloud-upload display-4 text-muted mb-3"></i>
-            <h5>MP3 dosyasını buraya sürükleyin</h5>
-            <p className="text-muted">veya tıklayarak dosya seçin</p>
-            <button className="btn btn-dark">
-              <i className="bi bi-folder-plus me-2"></i>
-              Dosya Seç
+            <i className="bi bi-cloud-upload display-4 text-primary mb-3"></i>            <h5 className="text-white">MP3 dosyasını buraya sürükleyin</h5>
+            <p style={{color: '#8e8e93'}}>veya tıklayarak dosya seçin</p>            <button className="btn btn-primary">
+              <i className="bi bi-folder-plus me-2 text-white"></i>
+              <span className="text-white">Dosya Seç</span>
             </button>
           </div>
-        )}
-      </div>
-
-      <style jsx>{`
-        .upload-dropzone {
-          border: 2px dashed #dee2e6;
-          border-radius: 8px;
-          padding: 3rem 2rem;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          background-color:rgb(250, 249, 248);
-        }
-        
-        .upload-dropzone:hover {
-          border-color:rgba(239, 255, 227, 0.64);
-          background-color:rgb(239, 255, 227);
-        }
-        
-        .upload-dropzone.dragging {
-          border-color:rgba(239, 255, 227, 0.64);
-          background-color:rgb(239, 255, 227);
-          transform: scale(1.02);
-        }
-        
-        .upload-dropzone.uploading {
-          pointer-events: none;
-          opacity: 0.8;
-        }
-        
-        @media (max-width: 768px) {
-          .upload-dropzone {
-            padding: 2rem 1rem;
-          }
-        }
-      `}</style>
+        )}      </div>
     </div>
   )
 }

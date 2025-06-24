@@ -97,41 +97,7 @@ export const musicService = {
       throw new MusicPlayerError(
         ERROR_CODES.NETWORK_ERROR,
         'Ağ bağlantısı hatası',
-        error instanceof Error ? error.message : 'Bilinmeyen hata'
-      )
-    }
-  },
-
-  // Delete a song
-  async deleteSong(id: string): Promise<void> {
-    // First get the song to get file path
-    const { data: song, error: fetchError } = await supabase
-      .from('songs')
-      .select('file_path')
-      .eq('id', id)
-      .single()
-
-    if (fetchError) {
-      throw new Error(`Failed to fetch song: ${fetchError.message}`)
-    }
-
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('music-files')
-      .remove([song.file_path])
-
-    if (storageError) {
-      console.error('Failed to delete file from storage:', storageError.message)
-    }
-
-    // Delete from database
-    const { error: dbError } = await supabase
-      .from('songs')
-      .delete()
-      .eq('id', id)
-
-    if (dbError) {
-      throw new Error(`Failed to delete song: ${dbError.message}`)
+        error instanceof Error ? error.message : 'Bilinmeyen hata'      )
     }
   },
 

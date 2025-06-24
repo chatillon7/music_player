@@ -1,9 +1,69 @@
-/* Custom styles for Music Player */
+/* Override Bootstrap's default blue primary */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #ff9900;
-  --secondary: #7d746c;
+  --bs-primary: #ff9230;
+  --bs-primary-rgb: 255, 146, 48;
+  --background: #1e1e1e;
+  --foreground: #ffffff;
+  --background-secondary: #2a2a2a;
+  --background-tertiary: #3a3a3a;
+  --primary: #ff9230;
+  --primary-hover: #ff8c1a;
+  --secondary: #8e8e93;
+  --accent: #ff9230;
+  --border-color: #404040;
+  --text-muted: #8e8e93;
+  --text-secondary: #8e8e93;
+  --success: #34c759;
+  --warning: #ff9230;
+  --danger: #ff453a;
+}
+
+/* Force all Bootstrap primary colors to orange */
+.bg-primary {
+  background-color: #ff9230 !important;
+}
+
+.border-primary {
+  border-color: #ff9230 !important;
+}
+
+.text-primary {
+  color: #ff9230 !important;
+}
+
+/* Ensure primary button text and icons are white */
+.btn-primary,
+.btn-primary i,
+.btn-primary span,
+.btn-primary .text-white {
+  color: #ffffff !important;
+}
+
+/* Progress bars */
+.progress-bar {
+  background-color: #ff9230 !important;
+}
+
+/* Links */
+a.text-primary:hover,
+a.text-primary:focus {
+  color: #ff8c1a !important;
+}
+
+/* Form controls focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: #ff9230 !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 146, 48, 0.25) !important;
+}
+
+/* Custom range inputs */
+.form-range::-webkit-slider-thumb {
+  background-color: #ff9230 !important;
+}
+
+.form-range::-moz-range-thumb {
+  background-color: #ff9230 !important;
 }
 
 html,
@@ -13,41 +73,218 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #1e1e1e !important;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  padding-bottom: 150px; /* Space for fixed music player */
+  color: var(--foreground) !important;
+  background: var(--background) !important;
+  background-color: #1e1e1e !important;
+  padding-bottom: 170px; /* Space for fixed music player */
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Custom scrollbar */
+/* Dark theme card styling */
+.card {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--foreground) !important;
+}
+
+.card-body {
+  background-color: var(--background-secondary) !important;
+}
+
+.list-group-item {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--foreground) !important;
+}
+
+.list-group-item:hover {
+  background-color: var(--background-tertiary) !important;
+}
+
+/* Form controls dark theme */
+.form-control {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--foreground) !important;
+}
+
+.form-control:focus {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--primary) !important;
+  color: var(--foreground) !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 153, 0, 0.25) !important;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Button styling - Dark theme consistent */
+.btn-outline-primary {
+  color: #ff9230 !important;
+  border-color: #ff9230 !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: #ff9230 !important;
+  border-color: #ff9230 !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-primary:focus {
+  background-color: #ff9230 !important;
+  border-color: #ff9230 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 146, 48, 0.25) !important;
+}
+
+.btn-secondary {
+  background-color: var(--background-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--foreground) !important;
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color) !important;
+}
+
+.btn-outline-secondary {
+  color: var(--secondary) !important;
+  border-color: var(--secondary) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--secondary) !important;
+  border-color: var(--secondary) !important;
+  color: #ffffff !important;
+}
+
+/* Force override any remaining blue colors */
+.text-primary,
+.btn-primary,
+.btn-outline-primary,
+i.text-primary,
+.spinner-border.text-primary {
+  color: #ff9230 !important;
+}
+
+.btn-primary {
+  background-color: #ff9230 !important;
+  border-color: #ff9230 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: #ff8c1a !important;
+  border-color: #ff8c1a !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background-color: #ff9230 !important;
+  border-color: #ff9230 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure outline-primary buttons have white icons on hover */
+.btn-outline-primary:hover i,
+.btn-outline-primary:focus i,
+.btn-outline-primary:active i {
+  color: #ffffff !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-warning {
+  color: var(--warning) !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+/* Comprehensive Bootstrap primary color override */
+.bg-primary {
+  background-color: #ff9230 !important;
+}
+
+.border-primary {
+  border-color: #ff9230 !important;
+}
+
+.text-primary {
+  color: #ff9230 !important;
+}
+
+/* Progress bars */
+.progress-bar {
+  background-color: #ff9230 !important;
+}
+
+/* Links */
+a.text-primary:hover,
+a.text-primary:focus {
+  color: #ff8c1a !important;
+}
+
+/* Form controls focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: #ff9230 !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 146, 48, 0.25) !important;
+}
+
+/* Custom range inputs */
+.form-range::-webkit-slider-thumb {
+  background-color: #ff9230 !important;
+}
+
+.form-range::-moz-range-thumb {
+  background-color: #ff9230 !important;
+}
+
+/* Custom scrollbar - Dark theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--background-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--border-color);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--secondary);
 }
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
   body {
-    padding-bottom: 130px;
+    padding-bottom: 200px;
   }
   
   .container-fluid {
@@ -95,7 +332,7 @@ body {
   justify-content: center;
 }
 
-/* Range input customization for iOS */
+/* Range input customization for iOS - Dark theme consistent */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -104,7 +341,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-track {
-  background: #8e8e8e;
+  background: var(--border-color);
   height: 4px;
   border-radius: 2px;
 }
@@ -120,7 +357,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-moz-range-track {
-  background: #8e8e8e;
+  background: var(--border-color);
   height: 4px;
   border-radius: 2px;
   border: none;
@@ -133,4 +370,78 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   cursor: pointer;
   border: none;
+}
+
+/* Bootstrap dark theme overrides */
+.bg-light {
+  background-color: var(--background-secondary) !important;
+}
+
+.border {
+  border-color: var(--border-color) !important;
+}
+
+.border-top {
+  border-top-color: var(--border-color) !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 0.125rem 0.25rem rgba(255, 255, 255, 0.075) !important;
+}
+
+/* Alert dark theme */
+.alert {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--foreground) !important;
+}
+
+.alert-danger {
+  background-color: rgba(255, 69, 58, 0.2) !important;
+  border-color: rgba(255, 69, 58, 0.5) !important;
+  color: #ff6b6b !important;
+}
+
+.alert-success {
+  background-color: rgba(52, 199, 89, 0.2) !important;
+  border-color: rgba(52, 199, 89, 0.5) !important;
+  color: #69db7c !important;
+}
+
+.alert-info {
+  background-color: rgba(255, 146, 48, 0.2) !important;
+  border-color: rgba(255, 146, 48, 0.5) !important;
+  color: #ff9230 !important;
+}
+
+/* Upload Dropzone Styles */
+.upload-dropzone {
+  border: 2px dashed var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 3rem 2rem !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  background-color: var(--background-secondary) !important;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--primary) !important;
+  background-color: var(--background-tertiary) !important;
+}
+
+.upload-dropzone.dragging {
+  border-color: var(--primary) !important;
+  background-color: var(--background-tertiary) !important;
+  transform: scale(1.02) !important;
+}
+
+.upload-dropzone.uploading {
+  pointer-events: none !important;
+  opacity: 0.8 !important;
+}
+
+@media (max-width: 768px) {
+  .upload-dropzone {
+    padding: 2rem 1rem !important;
+  }
 }
