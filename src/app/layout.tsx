@@ -19,7 +19,13 @@ export const metadata: Metadata = {
   description: "Modern müzik çalar uygulaması. MP3 dosyalarınızı yükleyin, çalın ve yönetin.",
   manifest: "/manifest.json",
   icons: {
-    icon: '/icon.png',
+    icon: [
+      {
+        url: '/icon.png',
+        sizes: '32x32',
+        type: 'image/png',
+      }
+    ],
     shortcut: '/icon.png',
     apple: '/icon.png',
   },
@@ -53,6 +59,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Müzik Çalar" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="icon" href="/icon.png" />
+        <link rel="shortcut icon" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}

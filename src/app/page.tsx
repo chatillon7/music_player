@@ -58,8 +58,7 @@ export default function Home() {
       <nav className="navbar navbar-dark sticky-top" style={{backgroundColor: '#2a2a2a'}}>
         <div className="container-fluid">
           <span className="navbar-brand mb-0 h1 d-flex align-items-center">
-            <Image src="/icon.png" alt="Müzik Çalar" width={32} height={32} className="me-2" />
-            <span className="text-white">Müzik Çalar</span>
+            <Image src="/icon.png" alt="Müzik Çalar" width={32} height={32} />
           </span>
         </div>
       </nav>
