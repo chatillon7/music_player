@@ -23,11 +23,7 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
     if (audioRef.current && song) {
       const audio = audioRef.current
       const songUrl = musicService.getPublicUrl(song.file_path)
-      
-      // Remember if we were playing before changing songs
-      setWasPlaying(isPlaying)
-      
-      audio.src = songUrl
+        audio.src = songUrl
       setIsLoading(true)
       setCurrentTime(0)
         // Set up media session for background playback
@@ -133,12 +129,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       nextIndex = Math.floor(Math.random() * songs.length)
     } else {
       nextIndex = (currentIndex + 1) % songs.length
-    }
-
-    // Remember that we want to continue playing
-    setWasPlaying(isPlaying)
-    onSongChange(songs[nextIndex])
-  }, [songs, song.id, isShuffled, isPlaying, onSongChange])
+    }    onSongChange(songs[nextIndex])
+  }, [songs, song.id, isShuffled, onSongChange])
   const playPrevious = useCallback(() => {
     const currentIndex = songs.findIndex(s => s.id === song.id)
     let prevIndex
@@ -147,12 +139,8 @@ export default function MusicPlayer({ song, songs, onSongChange }: MusicPlayerPr
       prevIndex = Math.floor(Math.random() * songs.length)
     } else {
       prevIndex = (currentIndex - 1 + songs.length) % songs.length
-    }
-
-    // Remember that we want to continue playing
-    setWasPlaying(isPlaying)
-    onSongChange(songs[prevIndex])
-  }, [songs, song.id, isShuffled, isPlaying, onSongChange])
+    }    onSongChange(songs[prevIndex])
+  }, [songs, song.id, isShuffled, onSongChange])
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current

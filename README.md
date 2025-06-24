@@ -11,7 +11,7 @@ Ayrıca detaylı sorun giderme için:
 - [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) dosyasına bakın
 - 401 Unauthorized hatası ve diğer yaygın sorunların çözümleri mevcut
 
-## 🚀 KurulumModern, mobil uyumlu müzik çalar uygulaması. Next.js 15, TypeScript, Supabase ve Bootstrap ile geliştirilmiştir.
+## 🚀 Kurulum; Modern, mobil uyumlu müzik çalar uygulaması. Next.js 15, TypeScript, Supabase ve Bootstrap ile geliştirilmiştir.
 
 ## ✨ Özellikler
 
