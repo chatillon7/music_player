@@ -14,6 +14,7 @@ Modern, mobil uyumlu müzik çalar uygulaması. Next.js 15, TypeScript, Supabase
 - ⌨️ **Klavye Desteği**: Windows medya tuşları ile kontrol (Play/Pause, Next, Previous, Stop)
 - 📱 **Mobil Uyumlu**: iPhone ve Android cihazlarda mükemmel performans
 - 🔊 **Arkaplan Çalma**: iOS'ta arkaplanda müzik çalmaya devam eder
+- 🎵 **iOS Autoplay**: İlk etkileşimden sonra şarkı geçişlerinde otomatik çalma
 - 📲 **PWA Desteği**: Ana ekrana uygulama olarak eklenebilir
 - 🎨 **Modern Dark UI**: Turuncu tema ile şık ve kullanıcı dostu arayüz
 - 🔒 **Güvenli**: Admin-only silme işlemleri, production-ready güvenlik
@@ -95,6 +96,26 @@ Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın.
 - **⌨️ Klavye Kontrolleri**: Windows medya tuşları (Play/Pause, Next, Previous, Stop)
 - **🔊 Arkaplan Çalma**: iOS'ta Safari'den çıkınca bile müzik devam eder
 - **📱 PWA**: Ana ekrana ekleyerek native app gibi kullanın
+
+## 📱 iOS & Mobile Özellikleri
+
+### iOS Autoplay Desteği
+- **İlk Etkileşim**: Kullanıcı ilk kez play butonuna bastığında iOS autoplay kısıtlaması kaldırılır
+- **Otomatik Geçiş**: Şarkı bitiminde veya next/previous butonlarında otomatik çalma aktif olur
+- **Şarkı Seçimi**: Listeden şarkı seçiminde otomatik başlatma (ilk etkileşimden sonra)
+- **Arkaplan Çalma**: Media Session API ile iOS'ta arkaplanda çalmaya devam eder
+
+### PWA (Progressive Web App)
+- Ana ekrana uygulama olarak eklenebilir (iOS Safari: Share → Add to Home Screen)
+- Native uygulama benzeri deneyim
+- Offline cache desteği (service worker ile)
+- Dark theme ile iOS dark mode uyumlu
+
+### Klavye Desteği
+- **Play/Pause**: Media Play/Pause tuşu
+- **Next Track**: Media Next tuşu  
+- **Previous Track**: Media Previous tuşu
+- **Stop**: Media Stop tuşu
 
 ## 🌐 Deployment
 
