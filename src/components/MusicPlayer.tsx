@@ -27,14 +27,22 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
     // Platform detection - Windows'ta autoplay hemen çalışsın (sadece client-side)
   const isIOS = isMounted && /iPad|iPhone|iPod/.test(navigator.userAgent)
   const isDesktop = isMounted && !(/Android|iPad|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
-
   useEffect(() => {
     if (audioRef.current && song && isMounted) {
       const audio = audioRef.current
       const songUrl = musicService.getPublicUrl(song.file_path)
-      audio.src = songUrl
-      setIsLoading(true)
-      setCurrentTime(0)
+      
+      // iOS için özel handling: User interaction varsa hemen load + play
+      if (isIOS && isUserInteraction) {
+        audio.src = songUrl
+        audio.load() // Force load immediately
+        setIsLoading(true)
+        setCurrentTime(0)
+      } else {
+        audio.src = songUrl
+        setIsLoading(true)
+        setCurrentTime(0)
+      }
       
       // Set up media session for background playbook
       if ('mediaSession' in navigator) {
@@ -78,13 +86,26 @@ export default function MusicPlayer({ song, songs, onSongChange, isUserInteracti
           }).catch(() => {
             setIsPlaying(false)
           })        } else if (isIOS) {
-          // iOS: User interaction varsa çalmaya çalış, yoksa bekle
-          if (isUserInteraction) {
-            audio.play().then(() => {
-              setIsPlaying(true)
-            }).catch(() => {
-              setIsPlaying(false)
-            })
+          // iOS: User interaction varsa agresif çalmaya çalış
+          if (isUserInteraction) {            // iOS için multiple attempt strategy
+            const tryPlay = async () => {
+              try {
+                await audio.play()
+                setIsPlaying(true)
+              } catch {
+                setIsPlaying(false)
+                // Kısa delay sonra tekrar dene
+                setTimeout(async () => {
+                  try {
+                    await audio.play()
+                    setIsPlaying(true)
+                  } catch {
+                    // Son deneme de başarısız
+                  }
+                }, 200)
+              }
+            }
+            tryPlay()
           } else {
             setIsPlaying(false)
           }

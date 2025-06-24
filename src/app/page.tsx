@@ -38,17 +38,24 @@ export default function Home() {
       setIsLoading(false)
     }
   }
-
   const handleSongUploaded = (newSong: Song) => {
     setSongs(prev => [newSong, ...prev])
     setError(null) // Clear any previous errors
   }
+
   const handlePlaySong = (song: Song) => {
     setCurrentSong(song)
     setIsUserInteraction(true)
     
-    // Reset user interaction flag after timeout
-    setTimeout(() => setIsUserInteraction(false), 1000)
+    // Reset user interaction flag after a longer timeout to ensure it reaches the player
+    setTimeout(() => setIsUserInteraction(false), 2000) // 2 saniye - daha uzun
+  }
+
+  const handleSongChange = (song: Song) => {
+    // Şarkı değişimi (next/previous) de user interaction olarak say
+    setCurrentSong(song) 
+    setIsUserInteraction(true)
+    setTimeout(() => setIsUserInteraction(false), 2000)
   }
 
   const retryLoadSongs = () => {
@@ -149,7 +156,7 @@ export default function Home() {
         <MusicPlayer 
           song={currentSong}
           songs={songs}
-          onSongChange={setCurrentSong}
+          onSongChange={handleSongChange}
           isUserInteraction={isUserInteraction}
         />
       )}
