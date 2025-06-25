@@ -1,7 +1,7 @@
 {
-  "name": "Müzik Çalar",
-  "short_name": "Müzik Çalar",
-  "description": "Modern müzik çalar uygulaması - Dark theme with orange accent",
+  "name": "Play Aura",
+  "short_name": "Play Aura",
+  "description": "Ücretsiz müzik dinleme deneyimi",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1e1e1e",
