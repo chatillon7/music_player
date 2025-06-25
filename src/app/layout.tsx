@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Müzik Çalar",
-  description: "Modern müzik çalar uygulaması. MP3 dosyalarınızı yükleyin, çalın ve yönetin.",
+  title: "Play Aura",
+  description: "Ücretsiz müzik dinleme deneyimi",
   manifest: "/manifest.json",
   icons: {
     icon: '/icon.png',
